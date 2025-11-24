@@ -291,3 +291,123 @@ def excessive_baggage_xml():
         </Pricing>
     </BookingResponse>
     """
+
+
+@pytest.fixture
+def valid_fare_xml():
+    """Provide valid fare data XML."""
+    return """
+    <FareResponse>
+        <FareInfo>
+            <FareReference>FARE2025001</FareReference>
+            <FareBasis>YOWUS</FareBasis>
+            <ValidatingCarrier>LO</ValidatingCarrier>
+        </FareInfo>
+        <Pricing currency="USD">
+            <BaseFare>500.00</BaseFare>
+            <Taxes>75.00</Taxes>
+            <Total>575.00</Total>
+        </Pricing>
+        <FareRules>
+            <FareRule type="ADVANCE_PURCHASE" code="AP14">
+                <Days>14</Days>
+                <Description>Must be purchased 14 days in advance</Description>
+            </FareRule>
+            <FareRule type="MIN_STAY" code="MS03">
+                <Days>3</Days>
+                <Description>Minimum stay 3 days</Description>
+            </FareRule>
+        </FareRules>
+        <Availability>
+            <SeatsAvailable>7</SeatsAvailable>
+        </Availability>
+    </FareResponse>
+    """
+
+
+@pytest.fixture
+def invalid_fare_basis_xml():
+    """Fare with invalid fare basis code."""
+    return """
+    <FareResponse>
+        <FareInfo>
+            <FareReference>FARE2025002</FareReference>
+            <FareBasis>abc</FareBasis>
+            <ValidatingCarrier>LO</ValidatingCarrier>
+        </FareInfo>
+        <Pricing currency="USD">
+            <BaseFare>500.00</BaseFare>
+            <Taxes>75.00</Taxes>
+            <Total>575.00</Total>
+        </Pricing>
+        <Availability>
+            <SeatsAvailable>5</SeatsAvailable>
+        </Availability>
+    </FareResponse>
+    """
+
+
+@pytest.fixture
+def invalid_pricing_xml():
+    """Fare with incorrect pricing calculation."""
+    return """
+    <FareResponse>
+        <FareInfo>
+            <FareReference>FARE2025003</FareReference>
+            <FareBasis>YOWUS</FareBasis>
+            <ValidatingCarrier>BA</ValidatingCarrier>
+        </FareInfo>
+        <Pricing currency="GBP">
+            <BaseFare>500.00</BaseFare>
+            <Taxes>75.00</Taxes>
+            <Total>600.00</Total>
+        </Pricing>
+        <Availability>
+            <SeatsAvailable>3</SeatsAvailable>
+        </Availability>
+    </FareResponse>
+    """
+
+
+@pytest.fixture
+def invalid_currency_xml():
+    """Fare with invalid currency code."""
+    return """
+    <FareResponse>
+        <FareInfo>
+            <FareReference>FARE2025004</FareReference>
+            <FareBasis>YOWUS</FareBasis>
+            <ValidatingCarrier>LO</ValidatingCarrier>
+        </FareInfo>
+        <Pricing currency="US">
+            <BaseFare>500.00</BaseFare>
+            <Taxes>75.00</Taxes>
+            <Total>575.00</Total>
+        </Pricing>
+        <Availability>
+            <SeatsAvailable>5</SeatsAvailable>
+        </Availability>
+    </FareResponse>
+    """
+
+
+@pytest.fixture
+def negative_seats_xml():
+    """Fare with negative seat availability."""
+    return """
+    <FareResponse>
+        <FareInfo>
+            <FareReference>FARE2025005</FareReference>
+            <FareBasis>YOWUS</FareBasis>
+            <ValidatingCarrier>LO</ValidatingCarrier>
+        </FareInfo>
+        <Pricing currency="USD">
+            <BaseFare>500.00</BaseFare>
+            <Taxes>75.00</Taxes>
+            <Total>575.00</Total>
+        </Pricing>
+        <Availability>
+            <SeatsAvailable>-5</SeatsAvailable>
+        </Availability>
+    </FareResponse>
+    """

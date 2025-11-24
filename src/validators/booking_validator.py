@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
-from datetime import datetime
 from collections import Counter
+from datetime import datetime
 
 
 class BookingValidator:
@@ -17,43 +17,41 @@ class BookingValidator:
         self._validate_pricing()
         self._extract_special_requests()
 
-        return {
-            'is_valid': len(self.errors) == 0,
-            'errors': self.errors,
-            'warnings': self.warnings
-        }
+        return {"is_valid": len(self.errors) == 0, "errors": self.errors, "warnings": self.warnings}
 
     def _print_booking_summary(self):
         """Extract and display booking summary."""
 
-        bookingreference = self.root.find('BookingReference').text
+        bookingreference = self.root.find("BookingReference").text
 
-        agency = self.root.find('Agency')
-        agency_code = agency.get('code')
-        agency_name = agency.get('name')
+        agency = self.root.find("Agency")
+        agency_code = agency.get("code")
+        agency_name = agency.get("name")
 
-        passengers = self.root.findall('.//Passenger')
+        passengers = self.root.findall(".//Passenger")
         total_passengers = len(passengers)
 
         # Count passenger types automatically
-        passenger_types = [p.get('type') for p in passengers]
+        passenger_types = [p.get("type") for p in passengers]
         type_counts = Counter(passenger_types)
 
         # Get total price
-        total_price = self.root.find('.//Pricing/Total').text
-        currency = self.root.find('.//Pricing').get('currency')
+        total_price = self.root.find(".//Pricing/Total").text
+        currency = self.root.find(".//Pricing").get("currency")
 
         print("Booking summary:")
         print(f"Booking reference: {bookingreference}")
         print(f"Agency: {agency_name} ({agency_code})")
-        print(f"Passengers: {total_passengers} - Adults: {type_counts['adult']}, Children: {type_counts['child']}")
+        print(
+            f"Passengers: {total_passengers} - Adults: {type_counts['adult']}, Children: {type_counts['child']}"
+        )
         print(f"Total price: {currency} {total_price}\n")
 
     def _validate_connection_times(self):
         """Check connection time is at least 90 minutes."""
         # Option 1: XPath with position index (1-based)
-        arrival1_str = self.root.find('.//Segment[1]/Flight/Arrival/DateTime').text
-        departure2_str = self.root.find('.//Segment[2]/Flight/Departure/DateTime').text
+        arrival1_str = self.root.find(".//Segment[1]/Flight/Arrival/DateTime").text
+        departure2_str = self.root.find(".//Segment[2]/Flight/Departure/DateTime").text
 
         # Option 2: Attribute filter
         # segment1 = self.root.find('.//Segment[@number="1"]')
@@ -78,16 +76,16 @@ class BookingValidator:
 
     def _validate_passenger_ages(self):
         """Validate passenger type matches their age."""
-        departure1_str = self.root.find('.//Segment[1]/Flight/Departure/DateTime').text
+        departure1_str = self.root.find(".//Segment[1]/Flight/Departure/DateTime").text
         departure1 = datetime.fromisoformat(departure1_str)
 
-        passengers = self.root.findall('.//Passenger')
+        passengers = self.root.findall(".//Passenger")
 
         for passenger in passengers:
-            passenger_id = passenger.get('id')
-            passenger_type = passenger.get('type')
+            passenger_id = passenger.get("id")
+            passenger_type = passenger.get("type")
 
-            date_of_birth_str = passenger.find('DateOfBirth').text
+            date_of_birth_str = passenger.find("DateOfBirth").text
             date_of_birth = datetime.fromisoformat(date_of_birth_str)
 
             # Calculate age in years
@@ -95,13 +93,13 @@ class BookingValidator:
             passenger_age_years = passenger_age_days / 365.25
 
             # Validate type matches age
-            if passenger_type == 'child':
+            if passenger_type == "child":
                 if passenger_age_years >= 12:
                     self.errors.append(
                         f"Passenger {passenger_id} is classified as child but is "
                         f"{passenger_age_years:.1f} years old (should be under 12)"
                     )
-            elif passenger_type == 'adult':
+            elif passenger_type == "adult":
                 if passenger_age_years < 12:
                     self.errors.append(
                         f"Passenger {passenger_id} is classified as adult but is "
@@ -110,14 +108,14 @@ class BookingValidator:
 
     def _validate_baggage(self):
         """Check baggage limits."""
-        passengers = self.root.findall('.//Passenger')
+        passengers = self.root.findall(".//Passenger")
 
         weight_sum = 0
         checked_sum = 0
 
         for passenger in passengers:
-            weight_sum += float(passenger.find('Baggage/Weight').text)
-            checked_sum += float(passenger.find('Baggage/Checked').text)
+            weight_sum += float(passenger.find("Baggage/Weight").text)
+            checked_sum += float(passenger.find("Baggage/Checked").text)
 
         if weight_sum > 100:
             self.errors.append(
@@ -127,22 +125,21 @@ class BookingValidator:
 
     def _validate_pricing(self):
         """Validate price calculations."""
-        passengers = self.root.findall('.//Passenger')
+        passengers = self.root.findall(".//Passenger")
         fare_sum = 0
 
         for passenger in passengers:
-            fare = passenger.find('Fare').text
+            fare = passenger.find("Fare").text
             fare_sum += float(fare)
 
-        subtotal = float(self.root.find('.//Pricing/SubTotal').text)
-        tax = float(self.root.find('.//Pricing/Tax').text)
-        total = float(self.root.find('.//Pricing/Total').text)
+        subtotal = float(self.root.find(".//Pricing/SubTotal").text)
+        tax = float(self.root.find(".//Pricing/Tax").text)
+        total = float(self.root.find(".//Pricing/Total").text)
 
         # Check 1: SubTotal should equal sum of passenger fares
         if abs(fare_sum - subtotal) > 0.01:
             self.errors.append(
-                f"SubTotal mismatch: sum of fares is {fare_sum}, "
-                f"but SubTotal is {subtotal}"
+                f"SubTotal mismatch: sum of fares is {fare_sum}, " f"but SubTotal is {subtotal}"
             )
 
         # Check 2: Tax should be 15% of SubTotal
@@ -163,13 +160,13 @@ class BookingValidator:
 
     def _extract_special_requests(self):
         """List and count special requests."""
-        passengers = self.root.findall('.//Passenger')
+        passengers = self.root.findall(".//Passenger")
         for passenger in passengers:
-            special_request = passenger.find('SpecialRequests')
+            special_request = passenger.find("SpecialRequests")
             if special_request is not None:
-                requests = special_request.findall('Request')
+                requests = special_request.findall("Request")
 
                 for request in requests:
-                    code = request.get('code')  # Get the code attribute
+                    code = request.get("code")  # Get the code attribute
                     description = request.text  # Get the text content
                     print(f"Code: {code}, Description: {description}")

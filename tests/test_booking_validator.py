@@ -1,18 +1,22 @@
-import pytest
 import logging
+
+import pytest
+
 from src.validators.booking_validator import BookingValidator
 from tests.fixtures.test_data import base_booking_xml, excessive_baggage_xml, invalid_child_xml, invalid_xml
+
 logger = logging.getLogger(__name__)
 
 
-
-
-@pytest.mark.parametrize("weight1,weight2,should_pass", [
-    (20, 30, True),  # Total 50kg - under limit
-    (40, 50, True),  # Total 90kg - under limit
-    (50, 51, False),  # Total 101kg - over limit
-    (60, 60, False),  # Total 120kg - over limit
-])
+@pytest.mark.parametrize(
+    "weight1,weight2,should_pass",
+    [
+        (20, 30, True),  # Total 50kg - under limit
+        (40, 50, True),  # Total 90kg - under limit
+        (50, 51, False),  # Total 101kg - over limit
+        (60, 60, False),  # Total 120kg - over limit
+    ],
+)
 def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass):
     """Test various baggage weight combinations."""
     second_passenger = f"""
@@ -36,18 +40,20 @@ def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass):
 
     xml = base_booking_xml
     xml = xml.replace('<Weight unit="kg">20</Weight>', f'<Weight unit="kg">{weight1}</Weight>')
-    xml = xml.replace('</Passengers>', second_passenger + '</Passengers>')
-    xml = xml.replace('<SubTotal>899.00</SubTotal>', '<SubTotal>1798.00</SubTotal>')
-    xml = xml.replace('<Tax>134.85</Tax>', '<Tax>269.70</Tax>')
-    xml = xml.replace('<Total>1033.85</Total>', '<Total>2067.70</Total>')
+    xml = xml.replace("</Passengers>", second_passenger + "</Passengers>")
+    xml = xml.replace("<SubTotal>899.00</SubTotal>", "<SubTotal>1798.00</SubTotal>")
+    xml = xml.replace("<Tax>134.85</Tax>", "<Tax>269.70</Tax>")
+    xml = xml.replace("<Total>1033.85</Total>", "<Total>2067.70</Total>")
 
     validator = BookingValidator(xml)
     result = validator.validate()
 
-    assert result['is_valid'] == should_pass
+    assert result["is_valid"] == should_pass
     if not should_pass:
-        assert len(result['errors']) > 0
-        assert any('baggage' in error.lower() and 'exceeded' in error.lower() for error in result['errors'])
+        assert len(result["errors"]) > 0
+        assert any(
+            "baggage" in error.lower() and "exceeded" in error.lower() for error in result["errors"]
+        )
 
 
 def test_valid_booking_passes(base_booking_xml):
@@ -55,8 +61,8 @@ def test_valid_booking_passes(base_booking_xml):
     validator = BookingValidator(base_booking_xml)
     result = validator.validate()
 
-    assert result['is_valid'] == True
-    assert len(result['errors']) == 0
+    assert result["is_valid"] == True
+    assert len(result["errors"]) == 0
 
 
 def test_connection_time_too_short_fails(invalid_xml):
@@ -64,9 +70,9 @@ def test_connection_time_too_short_fails(invalid_xml):
     validator = BookingValidator(invalid_xml)
     result = validator.validate()
 
-    assert result['is_valid'] == False
-    assert len(result['errors']) > 0
-    assert any('connection' in error.lower() for error in result['errors'])
+    assert result["is_valid"] == False
+    assert len(result["errors"]) > 0
+    assert any("connection" in error.lower() for error in result["errors"])
 
 
 def test_invalid_child_age(invalid_child_xml):
@@ -74,10 +80,10 @@ def test_invalid_child_age(invalid_child_xml):
     validator = BookingValidator(invalid_child_xml)
     result = validator.validate()
 
-    assert result['is_valid'] == False
-    assert len(result['errors']) > 0
-    assert any('child' in error.lower() and 'under' in error.lower() for error in result['errors'])
-    assert any('P001' in error for error in result['errors'])
+    assert result["is_valid"] == False
+    assert len(result["errors"]) > 0
+    assert any("child" in error.lower() and "under" in error.lower() for error in result["errors"])
+    assert any("P001" in error for error in result["errors"])
 
 
 def test_invalid_baggage_weight(excessive_baggage_xml):
@@ -85,8 +91,8 @@ def test_invalid_baggage_weight(excessive_baggage_xml):
     validator = BookingValidator(excessive_baggage_xml)
     result = validator.validate()
 
-    assert result['is_valid'] == False
-    assert len(result['errors']) > 0
-    assert any('baggage' in error.lower() and 'exceeded' in error.lower() for error in result['errors'])
-
-
+    assert result["is_valid"] == False
+    assert len(result["errors"]) > 0
+    assert any(
+        "baggage" in error.lower() and "exceeded" in error.lower() for error in result["errors"]
+    )

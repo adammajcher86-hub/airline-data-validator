@@ -1,4 +1,6 @@
 import pytest
+
+
 @pytest.fixture
 def base_booking_xml():
     """Provide a valid baseline booking XML."""

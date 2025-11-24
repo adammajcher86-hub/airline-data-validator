@@ -1,0 +1,352 @@
+diff --git a/.gitignore b/.gitignore
+index 68bc17f..2dc53ca 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -158,3 +158,7 @@ cython_debug/
+ #  and can be added to the global gitignore or merged into this file.  For a more nuclear
+ #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+ #.idea/
++
++# PyCharm
++.idea/
++*.iml
+diff --git a/tests/test_booking_validator.py b/tests/test_booking_validator.py
+index XXXXXXX..YYYYYYY 100644
+--- a/tests/test_booking_validator.py
++++ b/tests/test_booking_validator.py
+@@ -1,6 +1,10 @@
+ import pytest
+-from src.validators.booking_validator import AdvancedBookingValidator
++from src.validators.booking_validator import BookingValidator
++import logging
+ 
++# Setup logger
++logger = logging.getLogger(__name__)
++
+ @pytest.fixture
+ def base_booking_xml():
+     """Provide a valid baseline booking XML."""
+@@ -73,6 +77,161 @@ def base_booking_xml():
+     </BookingResponse>
+     """
+ 
++
++@pytest.fixture
++def invalid_xml():
++    """XML with connection time under 90 minutes."""
++    return """
++    <BookingResponse>
++        <BookingReference>REF2025001</BookingReference>
++        <BookingDate>2025-01-15T10:30:00</BookingDate>
++        <Agency code="AG001" name="Travel Solutions"/>
++        <Itinerary>
++            <Route>
++                <Segment number="1" status="confirmed">
++                    <Flight carrier="LO" number="281" class="Y">
++                        <Departure>
++                            <Airport>WAW</Airport>
++                            <Terminal>1</Terminal>
++                            <DateTime>2025-06-15T08:30:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T10:45:00</DateTime>
++                        </Arrival>
++                        <Duration>135</Duration>
++                    </Flight>
++                </Segment>
++                <Segment number="2" status="confirmed">
++                    <Flight carrier="BA" number="117" class="J">
++                        <Departure>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T11:30:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>JFK</Airport>
++                            <Terminal>7</Terminal>
++                            <DateTime>2025-06-15T17:30:00</DateTime>
++                        </Arrival>
++                        <Duration>450</Duration>
++                    </Flight>
++                </Segment>
++            </Route>
++        </Itinerary>
++        <Passengers>
++            <Passenger id="P001" type="adult" title="Mr">
++                <Name>
++                    <First>John</First>
++                    <Last>Smith</Last>
++                </Name>
++                <DateOfBirth>1985-03-20</DateOfBirth>
++                <Contact>
++                    <Email>john@email.com</Email>
++                </Contact>
++                <Baggage>
++                    <CarryOn>1</CarryOn>
++                    <Checked>1</Checked>
++                    <Weight unit="kg">20</Weight>
++                </Baggage>
++                <Fare currency="GBP">899.00</Fare>
++            </Passenger>
++        </Passengers>
++        <Pricing currency="GBP">
++            <SubTotal>899.00</SubTotal>
++            <Tax>134.85</Tax>
++            <Total>1033.85</Total>
++        </Pricing>
++    </BookingResponse>
++    """
++
++
++@pytest.fixture
++def invalid_child_xml():
++    """XML with child passenger who is too old."""
++    return """
++    <BookingResponse>
++        <BookingReference>REF2025001</BookingReference>
++        <BookingDate>2025-01-15T10:30:00</BookingDate>
++        <Agency code="AG001" name="Travel Solutions"/>
++        <Itinerary>
++            <Route>
++                <Segment number="1" status="confirmed">
++                    <Flight carrier="LO" number="281" class="Y">
++                        <Departure>
++                            <Airport>WAW</Airport>
++                            <Terminal>1</Terminal>
++                            <DateTime>2025-06-15T08:30:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T10:45:00</DateTime>
++                        </Arrival>
++                        <Duration>135</Duration>
++                    </Flight>
++                </Segment>
++                <Segment number="2" status="confirmed">
++                    <Flight carrier="BA" number="117" class="J">
++                        <Departure>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T14:00:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>JFK</Airport>
++                            <Terminal>7</Terminal>
++                            <DateTime>2025-06-15T17:30:00</DateTime>
++                        </Arrival>
++                        <Duration>450</Duration>
++                    </Flight>
++                </Segment>
++            </Route>
++        </Itinerary>
++        <Passengers>
++            <Passenger id="P001" type="child" title="Miss">
++                <Name>
++                    <First>Emily</First>
++                    <Last>Smith</Last>
++                </Name>
++                <DateOfBirth>2010-01-01</DateOfBirth>
++                <Contact>
++                    <Email>parent@email.com</Email>
++                </Contact>
++                <Baggage>
++                    <CarryOn>1</CarryOn>
++                    <Checked>1</Checked>
++                    <Weight unit="kg">15</Weight>
++                </Baggage>
++                <Fare currency="GBP">450.00</Fare>
++            </Passenger>
++        </Passengers>
++        <Pricing currency="GBP">
++            <SubTotal>450.00</SubTotal>
++            <Tax>67.50</Tax>
++            <Total>517.50</Total>
++        </Pricing>
++    </BookingResponse>
++    """
++
++
++@pytest.fixture
++def excessive_baggage_xml():
++    """XML with excessive baggage weight (over 100kg)."""
++    return """
++    <BookingResponse>
++        <BookingReference>REF2025001</BookingReference>
++        <BookingDate>2025-01-15T10:30:00</BookingDate>
++        <Agency code="AG001" name="Travel Solutions"/>
++        <Itinerary>
++            <Route>
++                <Segment number="1" status="confirmed">
++                    <Flight carrier="LO" number="281" class="Y">
++                        <Departure>
++                            <Airport>WAW</Airport>
++                            <Terminal>1</Terminal>
++                            <DateTime>2025-06-15T08:30:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T10:45:00</DateTime>
++                        </Arrival>
++                        <Duration>135</Duration>
++                    </Flight>
++                </Segment>
++                <Segment number="2" status="confirmed">
++                    <Flight carrier="BA" number="117" class="J">
++                        <Departure>
++                            <Airport>LHR</Airport>
++                            <Terminal>5</Terminal>
++                            <DateTime>2025-06-15T14:00:00</DateTime>
++                        </Departure>
++                        <Arrival>
++                            <Airport>JFK</Airport>
++                            <Terminal>7</Terminal>
++                            <DateTime>2025-06-15T17:30:00</DateTime>
++                        </Arrival>
++                        <Duration>450</Duration>
++                    </Flight>
++                </Segment>
++            </Route>
++        </Itinerary>
++        <Passengers>
++            <Passenger id="P001" type="adult" title="Mr">
++                <Name>
++                    <First>John</First>
++                    <Last>Smith</Last>
++                </Name>
++                <DateOfBirth>1985-03-20</DateOfBirth>
++                <Contact>
++                    <Email>john@email.com</Email>
++                </Contact>
++                <Baggage>
++                    <CarryOn>1</CarryOn>
++                    <Checked>2</Checked>
++                    <Weight unit="kg">55</Weight>
++                </Baggage>
++                <Fare currency="GBP">899.00</Fare>
++            </Passenger>
++            <Passenger id="P002" type="adult" title="Mrs">
++                <Name>
++                    <First>Jane</First>
++                    <Last>Smith</Last>
++                </Name>
++                <DateOfBirth>1987-07-15</DateOfBirth>
++                <Contact>
++                    <Email>jane@email.com</Email>
++                </Contact>
++                <Baggage>
++                    <CarryOn>1</CarryOn>
++                    <Checked>2</Checked>
++                    <Weight unit="kg">60</Weight>
++                </Baggage>
++                <Fare currency="GBP">899.00</Fare>
++            </Passenger>
++        </Passengers>
++        <Pricing currency="GBP">
++            <SubTotal>1798.00</SubTotal>
++            <Tax>269.70</Tax>
++            <Total>2067.70</Total>
++        </Pricing>
++    </BookingResponse>
++    """
++
++
+ @pytest.mark.parametrize("weight1,weight2,should_pass", [
+     (20, 30, True),  # Total 50kg - under limit, should pass
+     (40, 50, True),  # Total 90kg - under limit, should pass
+@@ -81,7 +240,7 @@ def base_booking_xml():
+ ])
+ def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass):
+     """Test various baggage weight combinations."""
+-    second_passenger = f"""
++    second_passenger = """
+         <Passenger id="P002" type="adult" title="Mrs">
+             <n>
+                 <First>Jane</First>
+@@ -93,7 +252,7 @@ def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass)
+             <Baggage>
+                 <CarryOn>1</CarryOn>
+                 <Checked>1</Checked>
+-                <Weight unit="kg">{weight2}</Weight>
++                <Weight unit="kg">%s</Weight>
+             </Baggage>
+             <Fare currency="GBP">899.00</Fare>
+         </Passenger>
+-    """
++    """ % weight2
+ 
+     xml = base_booking_xml
+ 
+@@ -118,42 +277,27 @@ def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass)
+         assert len(result['errors']) > 0
+         assert any('baggage' in error.lower() and 'exceeded' in error.lower() for error in result['errors'])
+ 
+-    # Your task:
+-    # 1. Modify base_booking_xml to have 2 passengers
+-    # 2. Set first passenger baggage weight to weight1
+-    # 3. Set second passenger baggage weight to weight2
+-    # 4. Validate
+-    # 5. Assert result['is_valid'] == should_pass
+ 
+-def test_valid_booking_passes(base_booking_xml ):
++def test_valid_booking_passes(base_booking_xml):
+     """Test that a valid booking passes all validations."""
+-
+-    xml = base_booking_xml
+-
+-
+-    validator = AdvancedBookingValidator(xml)
++    validator = BookingValidator(base_booking_xml)
+     result = validator.validate()
+ 
+     assert result['is_valid'] == True
+     assert len(result['errors']) == 0
+ 
+ 
+-def test_connection_time_too_short_fails():
+-    validator = AdvancedBookingValidator(invalid_xml)
++def test_connection_time_too_short_fails(invalid_xml):
++    """Test that connection time under 90 minutes fails."""
++    validator = BookingValidator(invalid_xml)
+     result = validator.validate()
+ 
+-    # Your assertions here
+     assert result['is_valid'] == False
+     assert len(result['errors']) > 0
+     assert any('connection' in error.lower() for error in result['errors'])
+ 
+-    #logger.info(result['errors'])
+-def test_invalid_child_age():
+-    validator = AdvancedBookingValidator(invalid_child_xml)
+-    result = validator.validate()
+ 
+-    # Your assertions here
++def test_invalid_child_age(invalid_child_xml):
++    """Test that child passenger older than 12 fails validation."""
++    validator = BookingValidator(invalid_child_xml)
++    result = validator.validate()
++
+     assert result['is_valid'] == False
+     assert len(result['errors']) > 0
+     assert any('child' in error.lower() and 'under' in error.lower() for error in result['errors'])
+     assert any('P001' in error for error in result['errors'])
+ 
+ 
+-def test_invalid_baggage_weight():
+-    validator = AdvancedBookingValidator(excessive_baggage_xml)
++def test_invalid_baggage_weight(excessive_baggage_xml):
++    """Test that excessive baggage weight fails validation."""
++    validator = BookingValidator(excessive_baggage_xml)
+     result = validator.validate()
+ 
+-
+     logger.info(result)
+-    # Your assertions here
+     assert result['is_valid'] == False
+     assert len(result['errors']) > 0
+     assert any('baggage' in error.lower() and 'exceeded' in error.lower() for error in result['errors'])
+-    #assert any('P001' in error for error in result['errors'])
+-

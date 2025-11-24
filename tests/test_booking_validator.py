@@ -3,7 +3,6 @@ import logging
 import pytest
 
 from src.validators.booking_validator import BookingValidator
-from tests.fixtures.test_data import base_booking_xml, excessive_baggage_xml, invalid_child_xml, invalid_xml
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +20,10 @@ def test_baggage_weight_limits(base_booking_xml, weight1, weight2, should_pass):
     """Test various baggage weight combinations."""
     second_passenger = f"""
         <Passenger id="P002" type="adult" title="Mrs">
-            <n>
+            <Name>
                 <First>Jane</First>
                 <Last>Smith</Last>
-            </n>
+            </Name>
             <DateOfBirth>1987-07-15</DateOfBirth>
             <Contact>
                 <Email>jane@email.com</Email>
@@ -61,7 +60,7 @@ def test_valid_booking_passes(base_booking_xml):
     validator = BookingValidator(base_booking_xml)
     result = validator.validate()
 
-    assert result["is_valid"] == True
+    assert result["is_valid"]
     assert len(result["errors"]) == 0
 
 
@@ -70,7 +69,7 @@ def test_connection_time_too_short_fails(invalid_xml):
     validator = BookingValidator(invalid_xml)
     result = validator.validate()
 
-    assert result["is_valid"] == False
+    assert not result["is_valid"]
     assert len(result["errors"]) > 0
     assert any("connection" in error.lower() for error in result["errors"])
 
@@ -80,7 +79,7 @@ def test_invalid_child_age(invalid_child_xml):
     validator = BookingValidator(invalid_child_xml)
     result = validator.validate()
 
-    assert result["is_valid"] == False
+    assert not result["is_valid"]
     assert len(result["errors"]) > 0
     assert any("child" in error.lower() and "under" in error.lower() for error in result["errors"])
     assert any("P001" in error for error in result["errors"])
@@ -91,7 +90,7 @@ def test_invalid_baggage_weight(excessive_baggage_xml):
     validator = BookingValidator(excessive_baggage_xml)
     result = validator.validate()
 
-    assert result["is_valid"] == False
+    assert not result["is_valid"]
     assert len(result["errors"]) > 0
     assert any(
         "baggage" in error.lower() and "exceeded" in error.lower() for error in result["errors"]

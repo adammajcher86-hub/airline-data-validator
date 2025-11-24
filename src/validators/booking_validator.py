@@ -43,7 +43,8 @@ class BookingValidator:
         print(f"Booking reference: {bookingreference}")
         print(f"Agency: {agency_name} ({agency_code})")
         print(
-            f"Passengers: {total_passengers} - Adults: {type_counts['adult']}, Children: {type_counts['child']}"
+            f"Passengers: {total_passengers} - "
+            f"Adults: {type_counts['adult']}, Children: {type_counts['child']}"
         )
         print(f"Total price: {currency} {total_price}\n")
 

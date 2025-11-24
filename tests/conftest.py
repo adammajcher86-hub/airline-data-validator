@@ -45,10 +45,10 @@ def base_booking_xml():
         </Itinerary>
         <Passengers>
             <Passenger id="P001" type="adult" title="Mr">
-                <n>
+                <Name>
                     <First>John</First>
                     <Last>Smith</Last>
-                </n>
+                </Name>
                 <DateOfBirth>1985-03-20</DateOfBirth>
                 <Contact>
                     <Email>john@email.com</Email>
@@ -114,10 +114,10 @@ def invalid_xml():
         </Itinerary>
         <Passengers>
             <Passenger id="P001" type="adult" title="Mr">
-                <n>
+                <Name>
                     <First>John</First>
                     <Last>Smith</Last>
-                </n>
+                </Name>
                 <DateOfBirth>1985-03-20</DateOfBirth>
                 <Contact>
                     <Email>john@email.com</Email>
@@ -183,10 +183,10 @@ def invalid_child_xml():
         </Itinerary>
         <Passengers>
             <Passenger id="P001" type="child" title="Miss">
-                <n>
+                <Name>
                     <First>Emily</First>
                     <Last>Smith</Last>
-                </n>
+                </Name>
                 <DateOfBirth>2010-01-01</DateOfBirth>
                 <Contact>
                     <Email>parent@email.com</Email>
@@ -252,10 +252,10 @@ def excessive_baggage_xml():
         </Itinerary>
         <Passengers>
             <Passenger id="P001" type="adult" title="Mr">
-                <n>
+                <Name>
                     <First>John</First>
                     <Last>Smith</Last>
-                </n>
+                </Name>
                 <DateOfBirth>1985-03-20</DateOfBirth>
                 <Contact>
                     <Email>john@email.com</Email>
@@ -268,10 +268,10 @@ def excessive_baggage_xml():
                 <Fare currency="GBP">899.00</Fare>
             </Passenger>
             <Passenger id="P002" type="adult" title="Mrs">
-                <n>
+                <Name>
                     <First>Jane</First>
                     <Last>Smith</Last>
-                </n>
+                </Name>
                 <DateOfBirth>1987-07-15</DateOfBirth>
                 <Contact>
                     <Email>jane@email.com</Email>
